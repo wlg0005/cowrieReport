@@ -144,8 +144,8 @@ func main() {
 	r, err := strconv.ParseFloat(ratio, 8)
 	check(err)
 
-	entries := removeSlices(getEntries(fname)) // process all json entries in log
-	sessions := getSessions(entries)           // get all cowrie.login.success sessions
+	entries := removeSlices(getEntries(fname))
+	sessions := getSessions(entries)
 	allCommands := getAllCommands(entries, sessions)
 	uniqueCommands := getUniqueCommands(allCommands, r)
 
