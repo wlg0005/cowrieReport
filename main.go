@@ -109,7 +109,7 @@ func getUniqueCommands(allCommands []string, ratio float64) []string {
 	for _, ac := range allCommands {
 		var ratios []float64
 		for _, uc := range uniqueCommands {
-			similarity := strutil.Similarity(uc, ac, metrics.NewHamming())
+			similarity := strutil.Similarity(uc, ac, metrics.NewLevenshtein())
 			ratios = append(ratios, similarity)
 		}
 
@@ -129,16 +129,20 @@ func main() {
 	flag.StringVar(&fname, "f", "", "Specify cowrie json log file")
 
 	var output string
-	flag.StringVar(&output, "o", "", "Specify output location for report (Default: ./report_[filename])")
+	flag.StringVar(&output, "o", "", "Specify output location for report (default ./report_[filename])")
 
 	var ratio string
-	flag.StringVar(&ratio, "r", "0.1", "Specify similarity ratio as a float (Default: 0.1)")
+	flag.StringVar(&ratio, "r", "0.7", "Specify similarity ratio as a float")
 
 	flag.Parse()
 
 	if fname == "" {
 		fmt.Println("Please specify -f. Use --help for more information.")
 		os.Exit(2)
+	}
+
+	if output == "" {
+		output = "./report_" + filepath.Base(fname)
 	}
 
 	r, err := strconv.ParseFloat(ratio, 8)
@@ -149,16 +153,9 @@ func main() {
 	allCommands := getAllCommands(entries, sessions)
 	uniqueCommands := getUniqueCommands(allCommands, r)
 
-	var f *os.File
-	if output == "" {
-		f, err = os.Create("./report_" + filepath.Base(fname))
-		check(err)
-		defer f.Close()
-	} else {
-		f, err = os.Create(output)
-		check(err)
-		defer f.Close()
-	}
+	f, err := os.Create(output)
+	check(err)
+	defer f.Close()
 
 	for _, c := range uniqueCommands[1:] {
 		f.WriteString(strings.Repeat("-", 50) + "\n")

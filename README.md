@@ -13,13 +13,13 @@ cowrieReport aims to deduplicate sets of commands within a cowrie json log. It e
 
 ## Usage
 ```
-Usage of ./cowrieReport:
+Usage of ./main:
   -f string
         Specify cowrie json log file
   -o string
-        Specify output location for report (Default: ./report_[filename])
+        Specify output location for report (default ./report_[filename])
   -r string
-        Specify similarity ratio as a float (Default: 0.1) (default "0.1")
+        Specify similarity ratio as a float (default "0.7")
 ```
 
 ## Examples:
