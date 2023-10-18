@@ -86,8 +86,13 @@ func getAllCommands(entries []map[string]interface{}, sessions []string) []strin
 		commands := ""
 		for _, e := range entries {
 			if e["session"] == s {
-				if strings.Contains(e["message"].(string), "CMD") {
-					message := strings.Replace(e["message"].(string), "CMD: ", "", 1)
+				messageStr := e["message"].(string)
+				sessionStr := e["session"].(string)
+				if strings.Contains(messageStr, "CMD") {
+					if !(strings.Contains(commands, sessionStr)) {
+						commands += sessionStr // prepend session ID to commands
+					}
+					message := strings.Replace(messageStr, "CMD: ", "", 1)
 					commands += message + "\n"
 				}
 			}
@@ -103,13 +108,16 @@ func getAllCommands(entries []map[string]interface{}, sessions []string) []strin
 	return allCommands
 }
 
-func getUniqueCommands(allCommands []string, ratio float64) []string {
-	var uniqueCommands []string
-	uniqueCommands = append(uniqueCommands, "0")
+func getUniqueCommands(allCommands []string, ratio float64) map[string]string {
+	uniqueCommands := make(map[string]string)
+	uniqueCommands["0"] = "0"
+
+	lenSession := 12 // length of session ID string at the beginning of each set of commands
 	for _, ac := range allCommands {
 		var ratios []float64
+		session := ac[:lenSession]
 		for _, uc := range uniqueCommands {
-			similarity := strutil.Similarity(uc, ac, metrics.NewLevenshtein())
+			similarity := strutil.Similarity(uc, ac[lenSession:], metrics.NewLevenshtein())
 			ratios = append(ratios, similarity)
 		}
 
@@ -117,7 +125,7 @@ func getUniqueCommands(allCommands []string, ratio float64) []string {
 			continue
 		}
 
-		uniqueCommands = append(uniqueCommands, ac)
+		uniqueCommands[session] = ac[lenSession:]
 	}
 
 	return uniqueCommands
@@ -152,15 +160,16 @@ func main() {
 	sessions := getSessions(entries)
 	allCommands := getAllCommands(entries, sessions)
 	uniqueCommands := getUniqueCommands(allCommands, r)
+	delete(uniqueCommands, "0")
 
 	f, err := os.Create(output)
 	check(err)
 	defer f.Close()
 
-	for _, c := range uniqueCommands[1:] {
-		f.WriteString(strings.Repeat("-", 50) + "\n")
-		_, err = f.WriteString(strings.TrimSuffix(c, "\n") + "\n")
+	for s, c := range uniqueCommands {
+		f.WriteString(strings.Repeat("-", 25) + " " + s + " " + strings.Repeat("-", 25) + "\n")
+		_, err = f.WriteString(c)
 		check(err)
-		f.WriteString(strings.Repeat("-", 50) + "\n\n")
+		f.WriteString(strings.Repeat("-", 25) + " " + s + " " + strings.Repeat("-", 25) + "\n\n")
 	}
 }
