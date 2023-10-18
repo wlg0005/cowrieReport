@@ -33,7 +33,7 @@ Parse input file and output to specified file (e.g., report.log)
 ./cowrieReport -f cowrie.json.2023-10-12 -o report.log
 ```
 
-Parse input file, output to specified file, and specify a similarity ratio (i.e., how similar a set of commands can be and not be considered unique, default is 0.1)
+Parse input file, output to specified file, and specify a similarity ratio (i.e., how similar a set of commands can be and not be considered unique, default is 0.7)
 ```bash
 ./cowrieReport -f cowrie.json.2023-10-12 -o report.log -r 0.5
 ```
